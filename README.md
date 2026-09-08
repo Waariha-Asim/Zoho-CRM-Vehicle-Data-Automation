@@ -16,6 +16,11 @@ The solution consists of two connected n8n workflows covering the complete custo
 
 ---
 
+## 🎥 Demo – End-to-End Walkthrough
+
+[Watch the complete workflow demonstration on Google Drive](https://drive.google.com/file/d/1ExvyGIH2SAqZedfaaHMQP1iVocz8vw-A/view?usp=sharing)
+---
+
 ## 📩 1. Vehicle Data Request Workflow
 
 The process starts when an employee opens a **Fahrzeug** record in Zoho CRM and clicks the **„Datenabfrage senden“** button.
