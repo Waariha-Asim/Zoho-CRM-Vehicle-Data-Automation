@@ -11,7 +11,10 @@
       "name": "Webhook – Button Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [-224, 128],
+      "position": [
+        -224,
+        128
+      ],
       "webhookId": "7c2cdbad-3d2e-49eb-a59b-7cc5286e41f0",
       "notes": "Zoho Deluge button calls this URL. Receives vehicle_id from CRM."
     },
@@ -25,7 +28,10 @@
       "name": "Respond to Zoho Immediately",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "notes": "Respond fast so Zoho does not timeout. Processing continues async."
     },
     {
@@ -34,14 +40,19 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "oAuth2Api",
         "sendHeaders": true,
-        "headerParameters": { "parameters": [] },
+        "headerParameters": {
+          "parameters": []
+        },
         "options": {}
       },
       "id": "105215c9-12c8-42ad-b929-590e3a584a69",
       "name": "Get Vehicle from Zoho CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [0, 192],
+      "position": [
+        0,
+        192
+      ],
       "retryOnFail": true,
       "notes": "Fetch full vehicle record using vehicle_id sent from Deluge button. EU data center = zohoapis.eu"
     },
@@ -56,34 +67,45 @@
       "name": "Get Contact from Zoho CRM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [224, 192],
+      "position": [
+        224,
+        192
+      ],
       "retryOnFail": true,
       "notes": "Use the lookup field id from vehicle record to fetch contact email. Lookup field name is 'Kontakt'."
     },
     {
       "parameters": {
-        "jsCode": "// Extract vehicle + contact data\nconst vehicle = $('Get Vehicle from Zoho CRM').item.json.data[0];\nconst contact = $('Get Contact from Zoho CRM').item.json.data[0];\n\n// Field values\nconst kennzeichenValue = vehicle.Kennzeichen || vehicle.Kennzeichen_1 || vehicle.Name || '';\nconst hersteller = vehicle.Hersteller || '';\nconst modell = vehicle.Modell || '';\n\n// Build personalized form URL\nconst formBase = 'https://forms.zohopublic.com/warihaasimgm1/form/Fahrzeugdaten/formperma/TsA_gd8q3ENa5ERZKM1TgL47fWqfkvHzRoBr49wjjw8';\n\nconst vehicleId = vehicle.id;\nconst kennzeichen = encodeURIComponent(kennzeichenValue);\nconst fahrzeug = encodeURIComponent((hersteller + ' ' + modell).trim());\nconst fahrzeugtyp = encodeURIComponent(vehicle.Fahrzeugtyp || '');\n\nconst formUrl = `${formBase}?FahrzeugID=${vehicleId}&Kennzeichen=${kennzeichen}&Fahrzeug=${fahrzeug}&Fahrzeugtyp=${fahrzeugtyp}`;\n\n// Contact data\nconst contactName = (contact.First_Name || '') + ' ' + (contact.Last_Name || '');\nconst contactEmail = contact.Email;\n\nif (!contactEmail) {\n  throw new Error(`Kein Email für Kontakt ${contactName} (ID: ${contact.id}) – Datensatz übersprungen.`);\n}\n\nconst emailSubject = `Fahrzeugdaten benötigt – ${kennzeichenValue}`;\n\nconst emailBody = `Sehr geehrte/r ${contactName},\n\nfür Ihr Fahrzeug (${hersteller} ${modell}, Kennzeichen: ${kennzeichenValue}) benötigen wir einige aktualisierte Angaben für Ihre Versicherungsakte.\n\nBitte nehmen Sie sich kurz Zeit und füllen Sie das folgende Formular aus:\n\n${formUrl}\n\nDies dauert nur etwa 2 Minuten. Ihre persönlichen Daten sowie Fahrzeugdetails sind bereits vorausgefüllt — Sie müssen nur die fehlenden Informationen ergänzen.\n\nBei Fragen stehen wir Ihnen jederzeit zur Verfügung.\n\nMit freundlichen Grüßen\nIhr Versicherungsteam`;\n\n// Zoho v3 API requires strict ISO 8601 string format\n// Example: 2026-09-08T02:37:12Z\nconst now = new Date();\nconst zohoDateTime = now.toISOString();\n\nreturn [{\n  json: {\n    vehicleId,\n    vehicleName: `${hersteller} ${modell}`,\n    kennzeichen: kennzeichenValue,\n    contactName,\n    contactEmail,\n    formUrl,\n    emailSubject,\n    emailBody,\n    currentTime: zohoDateTime\n  }\n}];\n"
+        "jsCode": "// Extract vehicle + contact data\nconst vehicle = $('Get Vehicle from Zoho CRM').item.json.data[0];\nconst contact = $('Get Contact from Zoho CRM').item.json.data[0];\n\n// Field values\nconst kennzeichenValue = vehicle.Kennzeichen || vehicle.Kennzeichen_1 || vehicle.Name || '';\nconst hersteller = vehicle.Hersteller || '';\nconst modell = vehicle.Modell || '';\n\n// Build personalized form URL\nconst formBase = 'https://forms.zohopublic.com/warihaasimgm1/form/Fahrzeugdaten/formperma/TsA_gd8q3ENa5ERZKM1TgL47fWqfkvHzRoBr49wjjw8';\n\nconst vehicleId = vehicle.id;\nconst kennzeichen = encodeURIComponent(kennzeichenValue);\nconst fahrzeug = encodeURIComponent((hersteller + ' ' + modell).trim());\nconst fahrzeugtyp = encodeURIComponent(vehicle.Fahrzeugtyp || '');\n\nconst formUrl = `${formBase}?FahrzeugID=${vehicleId}&Kennzeichen=${kennzeichen}&Fahrzeug=${fahrzeug}&Fahrzeugtyp=${fahrzeugtyp}`;\n\n// Contact data\nconst contactName = (contact.First_Name || '') + ' ' + (contact.Last_Name || '');\nconst contactEmail = contact.Email;\n\nif (!contactEmail) {\n  throw new Error(`Kein Email für Kontakt ${contactName} (ID: ${contact.id}) – Datensatz übersprungen.`);\n}\n\nconst emailSubject = `Fahrzeugdaten benötigt – ${kennzeichenValue}`;\n\nconst emailBody = `Sehr geehrte/r ${contactName},\n\nfür Ihr Fahrzeug (${hersteller} ${modell}, Kennzeichen: ${kennzeichenValue}) benötigen wir einige aktualisierte Angaben für Ihre Versicherungsakte.\n\nBitte nehmen Sie sich kurz Zeit und füllen Sie das folgende Formular aus:\n\n${formUrl}\n\nDies dauert nur etwa 2 Minuten. Ihre persönlichen Daten sowie Fahrzeugdetails sind bereits vorausgefüllt — Sie müssen nur die fehlenden Informationen ergänzen.\n\nBei Fragen stehen wir Ihnen jederzeit zur Verfügung.\n\nMit freundlichen Grüßen\nIhr Versicherungsteam`;\n\n// Zoho v3 API requires strict ISO 8601 string format\n// Example: 2026-09-08T02:37:12Z\nconst now = new Date();\nconst zohoDateTime = now.toISOString();\n\nreturn [{\n  json: {\n    vehicleId,\n    vehicleName: `${hersteller} ${modell}`,\n    kennzeichen: kennzeichenValue,\n    contactName,\n    contactEmail,\n    formUrl,\n    emailSubject,\n    emailBody,\n    currentTime: zohoDateTime\n  }\n}];"
       },
       "id": "1f23fe62-cebf-4b18-a424-f515e8678d8f",
       "name": "Build Form URL + Email Content",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [448, 192],
+      "position": [
+        448,
+        192
+      ],
       "notes": "Builds personalized URL with vehicle_id as hidden field. Throws error if contact has no email — this is logged automatically by n8n."
     },
     {
       "parameters": {
-        "sendTo": "RECIPIENT_EMAIL_PLACEHOLDER",
+        "sendTo": "={{ $json.contactEmail }}",
         "subject": "={{ $json.emailSubject }}",
         "emailType": "text",
         "message": "={{ $json.emailBody }}",
-        "options": { "appendAttribution": false }
+        "options": {
+          "appendAttribution": false
+        }
       },
       "id": "5c9d20c3-dd4e-463c-878e-c148f6601fdd",
       "name": "Send Email to Customer",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [672, 80],
+      "position": [
+        672,
+        80
+      ],
       "webhookId": "30fd6140-be59-43cd-8c94-5705525dd4c4",
       "notes": "Uses Gmail credential. Replace with SMTP node if preferred. fromEmail stored in n8n variable — never hardcoded."
     },
@@ -102,21 +124,28 @@
       "name": "Update Vehicle – Anfrage gesendet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [672, 288],
+      "position": [
+        672,
+        288
+      ],
       "retryOnFail": true,
       "notes": "Sets Status=Anfrage gesendet, saves form URL and timestamp. Field API names may differ — check Zoho CRM field API names in Settings > Modules."
     },
     {
       "parameters": {
-        "amount": 3
+        "amount": 7,
+        "unit": "days"
       },
       "id": "31d0a9ea-8cdf-4a76-8e18-c7d1eff2e698",
       "name": "Wait 7 Days",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [880, 288],
+      "position": [
+        880,
+        288
+      ],
       "webhookId": "a54edaa1-b76f-49df-8d6b-a0aec702957f",
-      "notes": "BONUS: 7-day reminder. Waits 168 hours then checks if status is still Anfrage gesendet."
+      "notes": "BONUS: 7-day reminder. Waits 7 days then checks if status is still Anfrage gesendet."
     },
     {
       "parameters": {
@@ -129,7 +158,10 @@
       "name": "Check Current Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1104, 288],
+      "position": [
+        1104,
+        288
+      ],
       "retryOnFail": true,
       "notes": "Re-fetch vehicle to check if customer already submitted. If already Daten vollständig, skip reminder."
     },
@@ -147,7 +179,10 @@
               "id": "condition-status-check",
               "leftValue": "={{ $json.data[0].Status }}",
               "rightValue": "Anfrage gesendet",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ],
           "combinator": "and"
@@ -158,22 +193,30 @@
       "name": "Still Pending?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1328, 288],
+      "position": [
+        1328,
+        288
+      ],
       "notes": "Only send reminder if customer has NOT yet submitted."
     },
     {
       "parameters": {
-        "sendTo": "RECIPIENT_EMAIL_PLACEHOLDER",
+        "sendTo": "={{ $('Build Form URL + Email Content').item.json.contactEmail }}",
         "subject": "=Erinnerung: Fahrzeugdaten ausstehend – {{ $('Build Form URL + Email Content').item.json.kennzeichen }}",
         "emailType": "text",
         "message": "=Sehr geehrte/r {{ $('Build Form URL + Email Content').item.json.contactName }},\n\nwir möchten Sie freundlich daran erinnern, dass wir noch auf Ihre Fahrzeugdaten für {{ $('Build Form URL + Email Content').item.json.vehicleName }} ({{ $('Build Form URL + Email Content').item.json.kennzeichen }}) warten.\n\nBitte nutzen Sie den folgenden Link:\n\n{{ $('Build Form URL + Email Content').item.json.formUrl }}\n\nMit freundlichen Grüßen\nIhr Versicherungsteam",
-        "options": { "appendAttribution": false }
+        "options": {
+          "appendAttribution": false
+        }
       },
       "id": "fbf8d5e2-99dc-40ea-975c-4851faff449c",
       "name": "Send Reminder Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [1552, 208],
+      "position": [
+        1552,
+        208
+      ],
       "webhookId": "4f41b41f-e750-44c0-b4ea-0ca3eb053483",
       "notes": "7-day reminder — only fires if Status is still Anfrage gesendet."
     },
@@ -188,8 +231,11 @@
       "name": "Webhook – Form Submission",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [-224, 608],
-      "webhookId": "781e6efb-c5b6-4b37-bcda-a7bc3c1410f0",
+      "position": [
+        -224,
+        608
+      ],
+      "webhookId": "781e6fbc-c5b6-4b37-bcda-a7bc3c1410f0",
       "notes": "Zoho Forms calls this URL on every submission. Configure in Zoho Forms > Integrations > Webhooks."
     },
     {
@@ -200,7 +246,10 @@
       "name": "Parse Form Submission",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [0, 608],
+      "position": [
+        0,
+        608
+      ],
       "notes": "Extracts the 5 answers + hidden FahrzeugID. FahrzeugID is the key to find correct vehicle record. Field names must match your Zoho Form field IDs exactly."
     },
     {
@@ -214,7 +263,10 @@
       "name": "Check if Already Daten vollständig",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [224, 608],
+      "position": [
+        224,
+        608
+      ],
       "retryOnFail": true,
       "notes": "Fetch current vehicle status to handle double submissions gracefully."
     },
@@ -232,7 +284,10 @@
               "id": "condition-already-complete",
               "leftValue": "={{ $json.data[0].Status }}",
               "rightValue": "Daten vollständig",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ],
           "combinator": "and"
@@ -243,7 +298,10 @@
       "name": "Already Complete?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [448, 608],
+      "position": [
+        448,
+        608
+      ],
       "notes": "DOUBLE SUBMISSION LOGIC: If already complete, we still overwrite with new data (idempotent). Customer may have corrected a mistake — last write wins. This is logged via CRM note so team can see history."
     },
     {
@@ -261,7 +319,10 @@
       "name": "Update Vehicle – 5 Fields + Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [832, 624],
+      "position": [
+        832,
+        624
+      ],
       "retryOnFail": true,
       "notes": "Writes all 5 customer answers to correct vehicle. Sets Status = Daten vollständig. Both paths (first submit + duplicate) lead here — last write wins."
     },
@@ -280,9 +341,12 @@
       "name": "Add Note on Vehicle Record",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1072, 624],
+      "position": [
+        1072,
+        624
+      ],
       "retryOnFail": true,
-      "notes": "Team notification via CRM note. Shows exactly what was submitted and when. Visible in activity timeline. Double submissions also logged — team can see full history."
+      "notes": "Team notification via CRM note. Shows exactly what was submitted and when. Double submissions also logged — team can see full history."
     },
     {
       "parameters": {
@@ -294,7 +358,10 @@
       "name": "Respond to Form",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1312, 624],
+      "position": [
+        1312,
+        624
+      ],
       "notes": "Acknowledge Zoho Forms webhook so it does not retry."
     },
     {
@@ -307,7 +374,10 @@
       "name": "Log Duplicate Submission",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [656, 512],
+      "position": [
+        656,
+        512
+      ],
       "notes": "Double submission detected — we still process it (overwrite). Last write wins policy. Team sees it in CRM note history."
     }
   ],
@@ -315,65 +385,185 @@
     "Webhook – Button Trigger": {
       "main": [
         [
-          { "node": "Respond to Zoho Immediately", "type": "main", "index": 0 },
-          { "node": "Get Vehicle from Zoho CRM", "type": "main", "index": 0 }
+          {
+            "node": "Respond to Zoho Immediately",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Vehicle from Zoho CRM",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Get Vehicle from Zoho CRM": {
-      "main": [[{ "node": "Get Contact from Zoho CRM", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Contact from Zoho CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Contact from Zoho CRM": {
-      "main": [[{ "node": "Build Form URL + Email Content", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Form URL + Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Form URL + Email Content": {
       "main": [
         [
-          { "node": "Send Email to Customer", "type": "main", "index": 0 },
-          { "node": "Update Vehicle – Anfrage gesendet", "type": "main", "index": 0 }
+          {
+            "node": "Send Email to Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Vehicle – Anfrage gesendet",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Update Vehicle – Anfrage gesendet": {
-      "main": [[{ "node": "Wait 7 Days", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait 7 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Wait 7 Days": {
-      "main": [[{ "node": "Check Current Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check Current Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Current Status": {
-      "main": [[{ "node": "Still Pending?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Still Pending?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Still Pending?": {
-      "main": [[{ "node": "Send Reminder Email", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Reminder Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Webhook – Form Submission": {
-      "main": [[{ "node": "Parse Form Submission", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Parse Form Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse Form Submission": {
-      "main": [[{ "node": "Check if Already Daten vollständig", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check if Already Daten vollständig",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check if Already Daten vollständig": {
-      "main": [[{ "node": "Already Complete?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Already Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Already Complete?": {
       "main": [
-        [{ "node": "Log Duplicate Submission", "type": "main", "index": 0 }],
-        [{ "node": "Update Vehicle – 5 Fields + Status", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Log Duplicate Submission",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Vehicle – 5 Fields + Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Update Vehicle – 5 Fields + Status": {
-      "main": [[{ "node": "Add Note on Vehicle Record", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Add Note on Vehicle Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Add Note on Vehicle Record": {
-      "main": [[{ "node": "Respond to Form", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Respond to Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Log Duplicate Submission": {
-      "main": [[{ "node": "Update Vehicle – 5 Fields + Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Update Vehicle – 5 Fields + Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "pinData": {},
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "64392526e4336d2b2fc8eb7b0c5ad9d6c5b2f3ac0803236f04700084480c9bdc"
-  }
+  "pinData": {}
 }
