@@ -140,7 +140,9 @@ The most important mapping decision is carrying the unique **`FahrzeugID`** from
 
 This avoids relying only on customer names, email addresses, or registration numbers and ensures the response is associated with one specific vehicle record.
 
-If the same form is submitted again after the vehicle is already marked **`Daten vollständig`**, the workflow handles the submission through a separate duplicate-submission path and records the activity rather than creating a new vehicle record. This keeps the process tied to the existing Fahrzeug record.
+If the same form is submitted again after the vehicle is already marked **`Daten vollständig`**, the workflow detects the existing status and handles the submission without creating a new vehicle record.
+
+If the **`FahrzeugID`** is missing from a submission, the workflow stops processing instead of falling back to a hardcoded vehicle ID. This prevents accidental updates to the wrong CRM record.
 
 ---
 
@@ -173,7 +175,7 @@ With additional implementation time, I would add more explicit error-handling br
 * Invalid or unexpected form values
 * Zoho/n8n API failures during processing
 * Webhook delivery failures
-* More robust duplicate-submission logging
+* robust duplicate-submission handling and logging
 
 The same n8n orchestration approach could also be extended to future integrations, such as sending the completed vehicle data to an external REST API and attaching a returned PDF to the corresponding CRM Fahrzeug record.
 
